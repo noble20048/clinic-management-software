@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dad's Clinic Software</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root{
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --muted: #666666;
+            --primary: #3498db;
+            --accent: #27ae60;
+            --th-bg: #2c3e50;
+            --danger: #e74c3c;
+            --row-even: #f8f9fa;
+        }
+        [data-theme="dark"]{
+            --bg: #0f1720;
+            --card-bg: #0b1220;
+            --text: #e6eef8;
+            --muted: #9fb2c9;
+            --primary: #2563eb;
+            --accent: #16a34a;
+            --th-bg: #071025;
+            --danger: #ff6b6b;
+            --row-even: #071624;
+        }
+
+        body { font-family: Arial, sans-serif; margin: 20px; background: var(--bg); color: var(--text); }
+        .container { max-width: 1000px; margin: auto; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        h1 { text-align: center; color: var(--text); }
+        .form, .search { background: var(--primary); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        input, select, button { padding: 10px; margin: 5px; border: none; border-radius: 5px; }
+        button { background: var(--accent); color: white; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid rgba(0,0,0,0.08); text-align: left; }
+        th { background: var(--th-bg); color: white; }
+        tr:nth-child(even) { background: var(--row-even); }
+        .actions a { margin: 0 5px; color: var(--danger); text-decoration: none; }
+        .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .top .left, .top .right { display:flex; gap:10px; align-items:center; }
+        .theme-toggle { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+        @media (max-width: 600px) { .form input, .form select { width: 100%; } .top{flex-direction:column;align-items:stretch} }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Clinic Patient Records</h1>
+    
+    <div class="top">
+        <div class="left">
+            <!-- Weekly report temporarily removed due to server errors -->
+            <a href="/export"><button>Export to Excel</button></a>
+        </div>
+        <div class="right">
+            {% if session.get('admin_id') %}
+                <a href="/logout"><button>Logout</button></a>
+            {% else %}
+                <a href="/login"><button>Admin Login</button></a>
+            {% endif %}
+            <button id="theme-toggle" class="theme-toggle" aria-pressed="false">🌙 Dark</button>
+        </div>
+    </div>
+
+    <div class="search">
+        <form method="GET">
+            <input type="text" name="search" placeholder="Search by Name or Phone" value="{{search}}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="form">
+        <form method="POST" action="/add">
+            <input type="text" name="token_number" placeholder="Token Number">
+            <input type="text" name="name" placeholder="Patient Name" required>
+            <input type="text" name="phone" placeholder="Phone" required>
+            <input type="text" name="age" placeholder="Age">
+            <input type="date" name="date" value="{{today}}" required>
+            <input type="time" name="time" required>
+            <input type="number" name="amount" placeholder="Amount ₹" step="1">
+            <select name="payment_mode">
+                <option>Cash</option><option>UPI</option><option>Card</option><option>Credit</option>
+            </select>
+            <select name="visit_type">
+                <option>Consultation</option><option>Follow Up</option><option>Certificate</option>
+            </select>
+            <input type="text" name="tests" placeholder="Tests (Blood/ECG)">
+            <input type="text" name="notes" placeholder="Notes">
+            <select name="result_delivered">
+                <option value="No">Result Delivered: No</option>
+                <option value="Yes">Result Delivered: Yes</option>
+            </select>
+            <button type="submit">Add Patient</button>
+        </form>
+    </div>
+
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Age</th>
+            <th>Details</th>
+            <th>Amount</th>
+            <th>Result</th>
+            <th>Action</th>
+        </tr>
+        {% for v in visits %}
+        <tr>
+            <td>{{ v[5] }} {{ v[6] }}</td>
+            <td>
+                <strong>{{ v[2] }}</strong><br>
+                {% if v[1] %}<span style="font-size:0.85em;color:#666;font-weight:bold;">Token: {{ v[1] }}</span>{% endif %}
+            </td>
+            <td>{{ v[3] }}</td>
+            <td>{{ v[4] or '-' }}</td>
+            <td>
+                <div style="font-weight:600">{{ v[9] or '' }}</div>
+                <div style="font-size:0.9em;color:#555">Payment: {{ v[7] or '-' }}</div>
+                {% if v[8] %}<div style="margin-top:6px;color:#333">Tests: {{ v[8] }}</div>{% endif %}
+                {% if v[11] %}<div style="margin-top:6px;color:#666">Notes: {{ v[11] }}</div>{% endif %}
+            </td>
+            <td>₹{{ v[10] or 0 }}</td>
+            <td>
+                <a href="/toggle-result/{{ v[0] }}" style="text-decoration:none;cursor:pointer;">
+                    {% if v[12] == 'Yes' %}
+                        <span style="font-weight:600;color:#27ae60;padding:4px 8px;background:#e8f5e9;border-radius:4px;display:inline-block;">✓ Yes</span>
+                    {% else %}
+                        <span style="font-weight:600;color:#e74c3c;padding:4px 8px;background:#ffebee;border-radius:4px;display:inline-block;">✗ No</span>
+                    {% endif %}
+                </a>
+            </td>
+            <td class="actions">
+                <a href="/edit/{{ v[0] }}">Edit</a>
+                <a href="/delete/{{ v[0] }}" onclick="return confirm('Delete?')">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<script>
+    (function(){
+        const toggle = document.getElementById('theme-toggle');
+        const root = document.documentElement;
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const saved = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+
+        function setTheme(theme){
+            if(theme === 'dark'){
+                root.setAttribute('data-theme','dark');
+                if(toggle) { toggle.textContent = '☀️ Light'; toggle.setAttribute('aria-pressed','true'); }
+            } else {
+                root.setAttribute('data-theme','light');
+                if(toggle) { toggle.textContent = '🌙 Dark'; toggle.setAttribute('aria-pressed','false'); }
+            }
+            try{ localStorage.setItem('theme', theme); }catch(e){}
+        }
+
+        setTheme(saved);
+
+        if(toggle){
+            toggle.addEventListener('click', () => {
+                const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                setTheme(current === 'dark' ? 'light' : 'dark');
+            });
+        }
+    })();
+</script>
+</body>
+</html>

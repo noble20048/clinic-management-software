@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Edit Visit</title>
+  <style>
+    body{font-family:Arial;background:var(--bg, #f0f2f5);color:var(--text,#222);padding:20px}
+    .card{max-width:700px;margin:auto;background:#fff;padding:20px;border-radius:8px}
+    input,select,textarea,button{display:block;width:100%;margin:8px 0;padding:8px;border-radius:6px;border:1px solid #ccc}
+    .actions{display:flex;gap:10px}
+    .actions a, .actions button{width:auto}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Edit Visit</h2>
+    <form method="POST" action="/update/{{ visit[0] }}">
+      <label>Token Number</label>
+      <input name="token_number" value="{{ visit[1] or '' }}" />
+
+      <label>Patient Name</label>
+      <input name="name" value="{{ visit[2] }}" required />
+
+      <label>Phone</label>
+      <input name="phone" value="{{ visit[3] }}" required />
+
+      <label>Age</label>
+      <input name="age" value="{{ visit[4] }}" />
+
+      <label>Date</label>
+      <input type="date" name="date" value="{{ visit[5] }}" required />
+
+      <label>Time</label>
+      <input type="time" name="time" value="{{ visit[6] }}" required />
+
+      <label>Payment Mode</label>
+      <select name="payment_mode">
+        <option {{ 'selected' if visit[7]=='Cash' else ''}}>Cash</option>
+        <option {{ 'selected' if visit[7]=='UPI' else ''}}>UPI</option>
+        <option {{ 'selected' if visit[7]=='Card' else ''}}>Card</option>
+        <option {{ 'selected' if visit[7]=='Credit' else ''}}>Credit</option>
+      </select>
+
+      <label>Visit Type</label>
+      <select name="visit_type">
+        <option {{ 'selected' if visit[9]=='Consultation' else ''}}>Consultation</option>
+        <option {{ 'selected' if visit[9]=='Follow Up' else ''}}>Follow Up</option>
+        <option {{ 'selected' if visit[9]=='Certificate' else ''}}>Certificate</option>
+      </select>
+
+      <label>Tests</label>
+      <input name="tests" value="{{ visit[8] or '' }}" />
+
+      <label>Amount (₹)</label>
+      <input type="number" name="amount" step="0.01" value="{{ visit[10] or 0 }}" />
+
+      <label>Notes</label>
+      <textarea name="notes">{{ visit[11] or '' }}</textarea>
+
+      <label>Result Delivered</label>
+      <select name="result_delivered">
+        <option value="No" {{ 'selected' if visit[12] != 'Yes' else '' }}>No</option>
+        <option value="Yes" {{ 'selected' if visit[12] == 'Yes' else '' }}>Yes</option>
+      </select>
+
+      <div class="actions">
+        <button type="submit">Update</button>
+        <a href="/">Cancel</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

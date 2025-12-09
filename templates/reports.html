@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><head><title>Weekly Report</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="font-family:Arial;margin:20px;background:#f0f2f5">
+<div style="max-width:900px;margin:auto;background:white;padding:20px;border-radius:15px">
+    <h1 style="text-align:center;color:#2c3e50">Weekly Report ({{start}} to {{end}})</h1>
+    <h2>Total Patients: {{total}} | Total Earnings: ₹{{amount}}</h2>
+    <table style="width:100%;border-collapse:collapse;margin-top:20px">
+        <tr style="background:#2c3e50;color:white"><th>Date</th><th>Name</th><th>Phone</th><th>Amount</th></tr>
+        {% for v in visits %}
+        <tr><td>{{v[5]}}</td><td>{{v[2]}}</td><td>{{v[3]}}</td><td>₹{{v[10]}}</td></tr>
+        {% endfor %}
+    </table>
+    <br><a href="/"><button style="padding:10px 20px;background:#3498db;color:white;border:none;border-radius:5px">Back</button></a>
+</div>
+</body></html>
